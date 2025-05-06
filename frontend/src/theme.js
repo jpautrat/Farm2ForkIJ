@@ -1,4 +1,4 @@
-import { createTheme } from '@material-ui/core/styles';
+import { createTheme } from '@mui/material/styles';
 
 // Farm2Fork color palette
 const primaryColor = '#2E7D32'; // Green - representing freshness and agriculture
@@ -47,12 +47,6 @@ const theme = createTheme({
       light: '#6abf69',
       dark: '#00600f',
       contrastText: '#ffffff',
-    },
-    accent: {
-      main: accentColor,
-      light: '#ffc046',
-      dark: '#c56000',
-      contrastText: '#000000',
     },
     background: {
       default: '#f5f5f5',
@@ -132,55 +126,71 @@ const theme = createTheme({
   shape: {
     borderRadius: 8,
   },
-  overrides: {
+  components: {
     MuiButton: {
-      root: {
-        borderRadius: 8,
-        padding: '8px 16px',
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          padding: '8px 16px',
+        },
+        contained: {
+          boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
+        },
       },
-      contained: {
-        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
+      defaultProps: {
+        disableElevation: true,
       },
     },
     MuiCard: {
-      root: {
-        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.05)',
-        borderRadius: 12,
+      styleOverrides: {
+        root: {
+          boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.05)',
+          borderRadius: 12,
+        },
       },
     },
     MuiPaper: {
-      rounded: {
-        borderRadius: 12,
-      },
-      elevation1: {
-        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.05)',
+      styleOverrides: {
+        rounded: {
+          borderRadius: 12,
+        },
+        elevation1: {
+          boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.05)',
+        },
       },
     },
     MuiAppBar: {
-      colorPrimary: {
-        backgroundColor: '#ffffff',
-        color: primaryColor,
+      styleOverrides: {
+        colorPrimary: {
+          backgroundColor: '#ffffff',
+          color: primaryColor,
+        },
       },
     },
-  },
-  props: {
-    MuiButton: {
-      disableElevation: true,
-    },
     MuiTextField: {
-      variant: 'outlined',
+      defaultProps: {
+        variant: 'outlined',
+      },
     },
     MuiSelect: {
-      variant: 'outlined',
+      defaultProps: {
+        variant: 'outlined',
+      },
     },
     MuiCheckbox: {
-      color: 'primary',
+      defaultProps: {
+        color: 'primary',
+      },
     },
     MuiRadio: {
-      color: 'primary',
+      defaultProps: {
+        color: 'primary',
+      },
     },
     MuiSwitch: {
-      color: 'primary',
+      defaultProps: {
+        color: 'primary',
+      },
     },
   },
 });
