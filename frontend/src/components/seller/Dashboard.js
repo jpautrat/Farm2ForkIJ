@@ -1,0 +1,375 @@
+import React, { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { 
+  Box, 
+  Grid, 
+  Paper, 
+  Typography, 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  Divider, 
+  List, 
+  ListItem, 
+  ListItemText, 
+  ListItemAvatar, 
+  Avatar, 
+  Button, 
+  CircularProgress,
+  Alert,
+  Chip
+} from '@mui/material';
+import { 
+  ShoppingCart, 
+  AttachMoney, 
+  Star, 
+  Inventory, 
+  Add, 
+  Receipt, 
+  LocalShipping,
+  TrendingUp
+} from '@mui/icons-material';
+import axios from 'axios';
+import Layout from '../common/Layout';
+import { getSellerDashboardStats } from '../../redux/actions/userActions';
+
+// Real API call to fetch seller dashboard statistics
+const fetchSellerDashboardStats = async (token) => {
+  try {
+    return await axios.get('/api/seller/dashboard', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+  } catch (error) {
+    console.error('Error fetching seller dashboard stats:', error);
+    throw error;
+  }
+};
+
+const SellerDashboard = () => {
+  const navigate = useNavigate();
+  const { userInfo } = useSelector(state => state.auth);
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    // Check if user is seller
+    if (!userInfo || userInfo.role !== 'seller') {
+      navigate('/login');
+      return;
+    }
+
+    const loadDashboardStats = async () => {
+      try {
+        setLoading(true);
+        const response = await fetchSellerDashboardStats(userInfo.token);
+        setStats(response.data);
+        setError(null);
+      } catch (err) {
+        setError('Failed to load dashboard statistics. Please try again later.');
+        console.error('Dashboard stats error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboardStats();
+  }, [userInfo, navigate]);
+
+  // Render loading state
+  if (loading) {
+    return (
+      <Layout>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+          <CircularProgress />
+        </Box>
+      </Layout>
+    );
+  }
+
+  // Render error state
+  if (error) {
+    return (
+      <Layout>
+        <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>
+      </Layout>
+    );
+  }
+
+  // Render dashboard
+  return (
+    <Layout>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4" component="h1">
+          Seller Dashboard
+        </Typography>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          startIcon={<Add />}
+          onClick={() => navigate('/seller/products/new')}
+        >
+          Add New Product
+        </Button>
+      </Box>
+
+      {/* Stats Overview */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12} sm={6} md={3}>
+          <Paper elevation={2} sx={{ p: 2, display: 'flex', flexDirection: 'column', height: 140 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography variant="h6" color="text.secondary">
+                Products
+              </Typography>
+              <Avatar sx={{ bgcolor: 'primary.main' }}>
+                <Inventory />
+              </Avatar>
+            </Box>
+            <Typography component="p" variant="h4" sx={{ mt: 2 }}>
+              {stats.products.total}
+            </Typography>
+            <Typography variant="body2" sx={{ mt: 1 }}>
+              {stats.products.active} active, {stats.products.outOfStock} out of stock
+            </Typography>
+          </Paper>
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <Paper elevation={2} sx={{ p: 2, display: 'flex', flexDirection: 'column', height: 140 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography variant="h6" color="text.secondary">
+                Orders
+              </Typography>
+              <Avatar sx={{ bgcolor: 'secondary.main' }}>
+                <ShoppingCart />
+              </Avatar>
+            </Box>
+            <Typography component="p" variant="h4" sx={{ mt: 2 }}>
+              {stats.orders.total}
+            </Typography>
+            <Typography variant="body2" sx={{ mt: 1 }}>
+              {stats.orders.pending} pending, {stats.orders.processing} processing
+            </Typography>
+          </Paper>
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <Paper elevation={2} sx={{ p: 2, display: 'flex', flexDirection: 'column', height: 140 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography variant="h6" color="text.secondary">
+                Revenue
+              </Typography>
+              <Avatar sx={{ bgcolor: 'success.main' }}>
+                <AttachMoney />
+              </Avatar>
+            </Box>
+            <Typography component="p" variant="h4" sx={{ mt: 2 }}>
+              ${stats.revenue.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+              <TrendingUp color="success" fontSize="small" sx={{ mr: 0.5 }} />
+              <Typography variant="body2" color="success.main">
+                {stats.revenue.growth}% from last month
+              </Typography>
+            </Box>
+          </Paper>
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <Paper elevation={2} sx={{ p: 2, display: 'flex', flexDirection: 'column', height: 140 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography variant="h6" color="text.secondary">
+                Reviews
+              </Typography>
+              <Avatar sx={{ bgcolor: 'warning.main' }}>
+                <Star />
+              </Avatar>
+            </Box>
+            <Typography component="p" variant="h4" sx={{ mt: 2 }}>
+              {stats.reviews.average.toFixed(1)}
+            </Typography>
+            <Typography variant="body2" sx={{ mt: 1 }}>
+              From {stats.reviews.total} reviews
+            </Typography>
+          </Paper>
+        </Grid>
+      </Grid>
+
+      {/* Recent Activity */}
+      <Grid container spacing={3}>
+        {/* Recent Orders */}
+        <Grid item xs={12} md={6}>
+          <Card>
+            <CardHeader title="Recent Orders" />
+            <Divider />
+            <CardContent sx={{ p: 0 }}>
+              <List>
+                {stats.recent.orders.map((order) => (
+                  <React.Fragment key={order._id}>
+                    <ListItem
+                      secondaryAction={
+                        <Button 
+                          variant="outlined" 
+                          size="small"
+                          onClick={() => navigate(`/seller/orders/${order._id}`)}
+                        >
+                          View
+                        </Button>
+                      }
+                    >
+                      <ListItemAvatar>
+                        <Avatar>
+                          <Receipt />
+                        </Avatar>
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={`Order #${order._id.substring(3)}`}
+                        secondary={
+                          <>
+                            <Typography component="span" variant="body2" color="text.primary">
+                              {`${order.user.first_name} ${order.user.last_name}`}
+                            </Typography>
+                            {` — $${order.total_amount.toFixed(2)} — ${order.items} items`}
+                            <Chip 
+                              label={order.status} 
+                              size="small" 
+                              color={
+                                order.status === 'delivered' ? 'success' :
+                                order.status === 'shipped' ? 'info' :
+                                order.status === 'processing' ? 'warning' :
+                                order.status === 'pending' ? 'default' : 'error'
+                              }
+                              sx={{ ml: 1 }}
+                            />
+                          </>
+                        }
+                      />
+                    </ListItem>
+                    <Divider variant="inset" component="li" />
+                  </React.Fragment>
+                ))}
+              </List>
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                <Button 
+                  variant="contained" 
+                  onClick={() => navigate('/seller/orders')}
+                >
+                  View All Orders
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Top Products */}
+        <Grid item xs={12} md={6}>
+          <Card>
+            <CardHeader title="Top Selling Products" />
+            <Divider />
+            <CardContent sx={{ p: 0 }}>
+              <List>
+                {stats.topProducts.map((product, index) => (
+                  <React.Fragment key={product._id}>
+                    <ListItem
+                      secondaryAction={
+                        <Button 
+                          variant="outlined" 
+                          size="small"
+                          onClick={() => navigate(`/seller/products/${product._id}`)}
+                        >
+                          View
+                        </Button>
+                      }
+                    >
+                      <ListItemAvatar>
+                        <Avatar sx={{ bgcolor: index < 3 ? 'success.main' : 'primary.main' }}>
+                          {index + 1}
+                        </Avatar>
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={product.name}
+                        secondary={
+                          <>
+                            <Typography component="span" variant="body2" color="text.primary">
+                              ${product.revenue.toFixed(2)}
+                            </Typography>
+                            {` — ${product.sales} units sold`}
+                          </>
+                        }
+                      />
+                    </ListItem>
+                    <Divider variant="inset" component="li" />
+                  </React.Fragment>
+                ))}
+              </List>
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                <Button 
+                  variant="contained" 
+                  onClick={() => navigate('/seller/products')}
+                >
+                  View All Products
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Quick Actions */}
+      <Box sx={{ mt: 4 }}>
+        <Typography variant="h5" gutterBottom>
+          Quick Actions
+        </Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={6} sm={4} md={3}>
+            <Button 
+              variant="outlined" 
+              fullWidth 
+              startIcon={<Inventory />}
+              onClick={() => navigate('/seller/products')}
+              sx={{ p: 2 }}
+            >
+              Manage Products
+            </Button>
+          </Grid>
+          <Grid item xs={6} sm={4} md={3}>
+            <Button 
+              variant="outlined" 
+              fullWidth 
+              startIcon={<Receipt />}
+              onClick={() => navigate('/seller/orders')}
+              sx={{ p: 2 }}
+            >
+              Manage Orders
+            </Button>
+          </Grid>
+          <Grid item xs={6} sm={4} md={3}>
+            <Button 
+              variant="outlined" 
+              fullWidth 
+              startIcon={<LocalShipping />}
+              onClick={() => navigate('/seller/shipments')}
+              sx={{ p: 2 }}
+            >
+              Manage Shipments
+            </Button>
+          </Grid>
+          <Grid item xs={6} sm={4} md={3}>
+            <Button 
+              variant="outlined" 
+              fullWidth 
+              startIcon={<Star />}
+              onClick={() => navigate('/seller/reviews')}
+              sx={{ p: 2 }}
+            >
+              View Reviews
+            </Button>
+          </Grid>
+        </Grid>
+      </Box>
+    </Layout>
+  );
+};
+
+export default SellerDashboard;
