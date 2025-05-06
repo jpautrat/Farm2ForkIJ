@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 
 // Pages
@@ -10,7 +10,7 @@ import './App.css';
 
 const App = () => {
   return (
-    <BrowserRouter>
+    <>
       <Helmet>
         <title>Farm2Fork - Direct-to-Door Food Marketplace</title>
         <meta name="description" content="Buy fresh produce directly from local farmers" />
@@ -21,7 +21,7 @@ const App = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
-    </BrowserRouter>
+    </>
   );
 };
 
